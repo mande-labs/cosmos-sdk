@@ -462,10 +462,6 @@
     - [HistoricalInfo](#cosmos.staking.v1beta1.HistoricalInfo)
     - [Params](#cosmos.staking.v1beta1.Params)
     - [Pool](#cosmos.staking.v1beta1.Pool)
-    - [Redelegation](#cosmos.staking.v1beta1.Redelegation)
-    - [RedelegationEntry](#cosmos.staking.v1beta1.RedelegationEntry)
-    - [RedelegationEntryResponse](#cosmos.staking.v1beta1.RedelegationEntryResponse)
-    - [RedelegationResponse](#cosmos.staking.v1beta1.RedelegationResponse)
     - [UnbondingDelegation](#cosmos.staking.v1beta1.UnbondingDelegation)
     - [UnbondingDelegationEntry](#cosmos.staking.v1beta1.UnbondingDelegationEntry)
     - [ValAddresses](#cosmos.staking.v1beta1.ValAddresses)
@@ -494,8 +490,6 @@
     - [QueryParamsResponse](#cosmos.staking.v1beta1.QueryParamsResponse)
     - [QueryPoolRequest](#cosmos.staking.v1beta1.QueryPoolRequest)
     - [QueryPoolResponse](#cosmos.staking.v1beta1.QueryPoolResponse)
-    - [QueryRedelegationsRequest](#cosmos.staking.v1beta1.QueryRedelegationsRequest)
-    - [QueryRedelegationsResponse](#cosmos.staking.v1beta1.QueryRedelegationsResponse)
     - [QueryUnbondingDelegationRequest](#cosmos.staking.v1beta1.QueryUnbondingDelegationRequest)
     - [QueryUnbondingDelegationResponse](#cosmos.staking.v1beta1.QueryUnbondingDelegationResponse)
     - [QueryValidatorDelegationsRequest](#cosmos.staking.v1beta1.QueryValidatorDelegationsRequest)
@@ -510,8 +504,6 @@
     - [Query](#cosmos.staking.v1beta1.Query)
   
 - [cosmos/staking/v1beta1/tx.proto](#cosmos/staking/v1beta1/tx.proto)
-    - [MsgBeginRedelegate](#cosmos.staking.v1beta1.MsgBeginRedelegate)
-    - [MsgBeginRedelegateResponse](#cosmos.staking.v1beta1.MsgBeginRedelegateResponse)
     - [MsgCreateValidator](#cosmos.staking.v1beta1.MsgCreateValidator)
     - [MsgCreateValidatorResponse](#cosmos.staking.v1beta1.MsgCreateValidatorResponse)
     - [MsgDelegate](#cosmos.staking.v1beta1.MsgDelegate)
@@ -932,6 +924,8 @@ the provide method with expiration time.
 GrantAuthorization extends a grant with both the addresses of the grantee and granter.
 It is used in genesis.proto and query.proto
 
+Since: cosmos-sdk 0.45.2
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1156,10 +1150,10 @@ Query defines the gRPC querier service.
 | `Grants` | [QueryGrantsRequest](#cosmos.authz.v1beta1.QueryGrantsRequest) | [QueryGrantsResponse](#cosmos.authz.v1beta1.QueryGrantsResponse) | Returns list of `Authorization`, granted to the grantee by the granter. | GET|/cosmos/authz/v1beta1/grants|
 | `GranterGrants` | [QueryGranterGrantsRequest](#cosmos.authz.v1beta1.QueryGranterGrantsRequest) | [QueryGranterGrantsResponse](#cosmos.authz.v1beta1.QueryGranterGrantsResponse) | GranterGrants returns list of `GrantAuthorization`, granted by granter.
 
-Since: cosmos-sdk 0.46 | GET|/cosmos/authz/v1beta1/grants/granter/{granter}|
+Since: cosmos-sdk 0.45.2 | GET|/cosmos/authz/v1beta1/grants/granter/{granter}|
 | `GranteeGrants` | [QueryGranteeGrantsRequest](#cosmos.authz.v1beta1.QueryGranteeGrantsRequest) | [QueryGranteeGrantsResponse](#cosmos.authz.v1beta1.QueryGranteeGrantsResponse) | GranteeGrants returns a list of `GrantAuthorization` by grantee.
 
-Since: cosmos-sdk 0.46 | GET|/cosmos/authz/v1beta1/grants/grantee/{grantee}|
+Since: cosmos-sdk 0.45.2 | GET|/cosmos/authz/v1beta1/grants/grantee/{grantee}|
 
  <!-- end services -->
 
@@ -6309,7 +6303,7 @@ Msg defines the slashing Msg service.
 <a name="cosmos.staking.v1beta1.StakeAuthorization"></a>
 
 ### StakeAuthorization
-StakeAuthorization defines authorization for delegate/undelegate/redelegate.
+StakeAuthorization defines authorization for delegate/undelegate.
 
 Since: cosmos-sdk 0.43
 
@@ -6355,7 +6349,6 @@ Since: cosmos-sdk 0.43
 | AUTHORIZATION_TYPE_UNSPECIFIED | 0 | AUTHORIZATION_TYPE_UNSPECIFIED specifies an unknown authorization type |
 | AUTHORIZATION_TYPE_DELEGATE | 1 | AUTHORIZATION_TYPE_DELEGATE defines an authorization type for Msg/Delegate |
 | AUTHORIZATION_TYPE_UNDELEGATE | 2 | AUTHORIZATION_TYPE_UNDELEGATE defines an authorization type for Msg/Undelegate |
-| AUTHORIZATION_TYPE_REDELEGATE | 3 | AUTHORIZATION_TYPE_REDELEGATE defines an authorization type for Msg/BeginRedelegate |
 
 
  <!-- end enums -->
@@ -6585,81 +6578,6 @@ denomination.
 
 
 
-<a name="cosmos.staking.v1beta1.Redelegation"></a>
-
-### Redelegation
-Redelegation contains the list of a particular delegator's redelegating bonds
-from a particular source validator to a particular destination validator.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `delegator_address` | [string](#string) |  | delegator_address is the bech32-encoded address of the delegator. |
-| `validator_src_address` | [string](#string) |  | validator_src_address is the validator redelegation source operator address. |
-| `validator_dst_address` | [string](#string) |  | validator_dst_address is the validator redelegation destination operator address. |
-| `entries` | [RedelegationEntry](#cosmos.staking.v1beta1.RedelegationEntry) | repeated | entries are the redelegation entries.
-
-redelegation entries |
-
-
-
-
-
-
-<a name="cosmos.staking.v1beta1.RedelegationEntry"></a>
-
-### RedelegationEntry
-RedelegationEntry defines a redelegation object with relevant metadata.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `creation_height` | [int64](#int64) |  | creation_height defines the height which the redelegation took place. |
-| `completion_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | completion_time defines the unix time for redelegation completion. |
-| `initial_balance` | [string](#string) |  | initial_balance defines the initial balance when redelegation started. |
-| `shares_dst` | [string](#string) |  | shares_dst is the amount of destination-validator shares created by redelegation. |
-
-
-
-
-
-
-<a name="cosmos.staking.v1beta1.RedelegationEntryResponse"></a>
-
-### RedelegationEntryResponse
-RedelegationEntryResponse is equivalent to a RedelegationEntry except that it
-contains a balance in addition to shares which is more suitable for client
-responses.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `redelegation_entry` | [RedelegationEntry](#cosmos.staking.v1beta1.RedelegationEntry) |  |  |
-| `balance` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="cosmos.staking.v1beta1.RedelegationResponse"></a>
-
-### RedelegationResponse
-RedelegationResponse is equivalent to a Redelegation except that its entries
-contain a balance in addition to shares which is more suitable for client
-responses.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `redelegation` | [Redelegation](#cosmos.staking.v1beta1.Redelegation) |  |  |
-| `entries` | [RedelegationEntryResponse](#cosmos.staking.v1beta1.RedelegationEntryResponse) | repeated |  |
-
-
-
-
-
-
 <a name="cosmos.staking.v1beta1.UnbondingDelegation"></a>
 
 ### UnbondingDelegation
@@ -6789,7 +6707,6 @@ GenesisState defines the staking module's genesis state.
 | `validators` | [Validator](#cosmos.staking.v1beta1.Validator) | repeated | delegations defines the validator set at genesis. |
 | `delegations` | [Delegation](#cosmos.staking.v1beta1.Delegation) | repeated | delegations defines the delegations active at genesis. |
 | `unbonding_delegations` | [UnbondingDelegation](#cosmos.staking.v1beta1.UnbondingDelegation) | repeated | unbonding_delegations defines the unbonding delegations active at genesis. |
-| `redelegations` | [Redelegation](#cosmos.staking.v1beta1.Redelegation) | repeated | redelegations defines the redelegations active at genesis. |
 | `exported` | [bool](#bool) |  |  |
 
 
@@ -7077,42 +6994,6 @@ QueryPoolResponse is response type for the Query/Pool RPC method.
 
 
 
-<a name="cosmos.staking.v1beta1.QueryRedelegationsRequest"></a>
-
-### QueryRedelegationsRequest
-QueryRedelegationsRequest is request type for the Query/Redelegations RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `delegator_addr` | [string](#string) |  | delegator_addr defines the delegator address to query for. |
-| `src_validator_addr` | [string](#string) |  | src_validator_addr defines the validator address to redelegate from. |
-| `dst_validator_addr` | [string](#string) |  | dst_validator_addr defines the validator address to redelegate to. |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
-
-
-
-
-
-
-<a name="cosmos.staking.v1beta1.QueryRedelegationsResponse"></a>
-
-### QueryRedelegationsResponse
-QueryRedelegationsResponse is response type for the Query/Redelegations RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `redelegation_responses` | [RedelegationResponse](#cosmos.staking.v1beta1.RedelegationResponse) | repeated |  |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
-
-
-
-
-
-
 <a name="cosmos.staking.v1beta1.QueryUnbondingDelegationRequest"></a>
 
 ### QueryUnbondingDelegationRequest
@@ -7297,7 +7178,6 @@ Query defines the gRPC querier service.
 | `UnbondingDelegation` | [QueryUnbondingDelegationRequest](#cosmos.staking.v1beta1.QueryUnbondingDelegationRequest) | [QueryUnbondingDelegationResponse](#cosmos.staking.v1beta1.QueryUnbondingDelegationResponse) | UnbondingDelegation queries unbonding info for given validator delegator pair. | GET|/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation|
 | `DelegatorDelegations` | [QueryDelegatorDelegationsRequest](#cosmos.staking.v1beta1.QueryDelegatorDelegationsRequest) | [QueryDelegatorDelegationsResponse](#cosmos.staking.v1beta1.QueryDelegatorDelegationsResponse) | DelegatorDelegations queries all delegations of a given delegator address. | GET|/cosmos/staking/v1beta1/delegations/{delegator_addr}|
 | `DelegatorUnbondingDelegations` | [QueryDelegatorUnbondingDelegationsRequest](#cosmos.staking.v1beta1.QueryDelegatorUnbondingDelegationsRequest) | [QueryDelegatorUnbondingDelegationsResponse](#cosmos.staking.v1beta1.QueryDelegatorUnbondingDelegationsResponse) | DelegatorUnbondingDelegations queries all unbonding delegations of a given delegator address. | GET|/cosmos/staking/v1beta1/delegators/{delegator_addr}/unbonding_delegations|
-| `Redelegations` | [QueryRedelegationsRequest](#cosmos.staking.v1beta1.QueryRedelegationsRequest) | [QueryRedelegationsResponse](#cosmos.staking.v1beta1.QueryRedelegationsResponse) | Redelegations queries redelegations of given address. | GET|/cosmos/staking/v1beta1/delegators/{delegator_addr}/redelegations|
 | `DelegatorValidators` | [QueryDelegatorValidatorsRequest](#cosmos.staking.v1beta1.QueryDelegatorValidatorsRequest) | [QueryDelegatorValidatorsResponse](#cosmos.staking.v1beta1.QueryDelegatorValidatorsResponse) | DelegatorValidators queries all validators info for given delegator address. | GET|/cosmos/staking/v1beta1/delegators/{delegator_addr}/validators|
 | `DelegatorValidator` | [QueryDelegatorValidatorRequest](#cosmos.staking.v1beta1.QueryDelegatorValidatorRequest) | [QueryDelegatorValidatorResponse](#cosmos.staking.v1beta1.QueryDelegatorValidatorResponse) | DelegatorValidator queries validator info for given delegator validator pair. | GET|/cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}|
 | `HistoricalInfo` | [QueryHistoricalInfoRequest](#cosmos.staking.v1beta1.QueryHistoricalInfoRequest) | [QueryHistoricalInfoResponse](#cosmos.staking.v1beta1.QueryHistoricalInfoResponse) | HistoricalInfo queries the historical info for given height. | GET|/cosmos/staking/v1beta1/historical_info/{height}|
@@ -7312,40 +7192,6 @@ Query defines the gRPC querier service.
 <p align="right"><a href="#top">Top</a></p>
 
 ## cosmos/staking/v1beta1/tx.proto
-
-
-
-<a name="cosmos.staking.v1beta1.MsgBeginRedelegate"></a>
-
-### MsgBeginRedelegate
-MsgBeginRedelegate defines a SDK message for performing a redelegation
-of coins from a delegator and source validator to a destination validator.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `delegator_address` | [string](#string) |  |  |
-| `validator_src_address` | [string](#string) |  |  |
-| `validator_dst_address` | [string](#string) |  |  |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-
-
-
-
-
-
-<a name="cosmos.staking.v1beta1.MsgBeginRedelegateResponse"></a>
-
-### MsgBeginRedelegateResponse
-MsgBeginRedelegateResponse defines the Msg/BeginRedelegate response type.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `completion_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-
-
-
 
 
 
@@ -7485,7 +7331,6 @@ Msg defines the staking Msg service.
 | `CreateValidator` | [MsgCreateValidator](#cosmos.staking.v1beta1.MsgCreateValidator) | [MsgCreateValidatorResponse](#cosmos.staking.v1beta1.MsgCreateValidatorResponse) | CreateValidator defines a method for creating a new validator. | |
 | `EditValidator` | [MsgEditValidator](#cosmos.staking.v1beta1.MsgEditValidator) | [MsgEditValidatorResponse](#cosmos.staking.v1beta1.MsgEditValidatorResponse) | EditValidator defines a method for editing an existing validator. | |
 | `Delegate` | [MsgDelegate](#cosmos.staking.v1beta1.MsgDelegate) | [MsgDelegateResponse](#cosmos.staking.v1beta1.MsgDelegateResponse) | Delegate defines a method for performing a delegation of coins from a delegator to a validator. | |
-| `BeginRedelegate` | [MsgBeginRedelegate](#cosmos.staking.v1beta1.MsgBeginRedelegate) | [MsgBeginRedelegateResponse](#cosmos.staking.v1beta1.MsgBeginRedelegateResponse) | BeginRedelegate defines a method for performing a redelegation of coins from a delegator and source validator to a destination validator. | |
 | `Undelegate` | [MsgUndelegate](#cosmos.staking.v1beta1.MsgUndelegate) | [MsgUndelegateResponse](#cosmos.staking.v1beta1.MsgUndelegateResponse) | Undelegate defines a method for performing an undelegation from a delegate and a validator. | |
 
  <!-- end services -->
@@ -7595,6 +7440,11 @@ SignMode represents a signing mode with its own security guarantees.
 | SIGN_MODE_DIRECT | 1 | SIGN_MODE_DIRECT specifies a signing mode which uses SignDoc and is verified with raw bytes from Tx |
 | SIGN_MODE_TEXTUAL | 2 | SIGN_MODE_TEXTUAL is a future signing mode that will verify some human-readable textual representation on top of the binary representation from SIGN_MODE_DIRECT |
 | SIGN_MODE_LEGACY_AMINO_JSON | 127 | SIGN_MODE_LEGACY_AMINO_JSON is a backwards compatibility mode which uses Amino JSON and will be removed in the future |
+| SIGN_MODE_EIP_191 | 191 | SIGN_MODE_EIP_191 specifies the sign mode for EIP 191 signing on the Cosmos SDK. Ref: https://eips.ethereum.org/EIPS/eip-191
+
+Currently, SIGN_MODE_EIP_191 is registered as a SignMode enum variant, but is not implemented on the SDK by default. To enable EIP-191, you need to pass a custom `TxConfig` that has an implementation of `SignModeHandler` for EIP-191. The SDK may decide to fully support EIP-191 in the future.
+
+Since: cosmos-sdk 0.45.2 |
 
 
  <!-- end enums -->
