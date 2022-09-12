@@ -164,14 +164,15 @@ func (k Keeper) withdrawDelegationRewards(ctx sdk.Context, val stakingtypes.Vali
 	// truncate coins, return remainder to community pool
 	coins, remainder := rewards.TruncateDecimal()
 
+	// disable delegation rewards for PoC
 	// add coins to user account
-	if !coins.IsZero() {
-		withdrawAddr := k.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, withdrawAddr, coins)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// if !coins.IsZero() {
+	// 	withdrawAddr := k.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
+	// 	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, withdrawAddr, coins)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	// update the outstanding rewards and the community pool only if the
 	// transaction was successful
