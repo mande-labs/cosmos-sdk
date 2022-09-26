@@ -127,12 +127,12 @@ func (msg MsgCreateValidator) ValidateBasic() error {
 		return err
 	}
 
-	if !msg.MinSelfDelegation.IsPositive() {
-		return sdkerrors.Wrap(
-			sdkerrors.ErrInvalidRequest,
-			"minimum self delegation must be a positive integer",
-		)
-	}
+	//if !msg.MinSelfDelegation.IsPositive() {
+	//	return sdkerrors.Wrap(
+	//		sdkerrors.ErrInvalidRequest,
+	//		"minimum self delegation must be a positive integer",
+	//	)
+	//}
 
 	if msg.Value.Amount.LT(msg.MinSelfDelegation) {
 		return ErrSelfDelegationBelowMinimum
@@ -189,12 +189,12 @@ func (msg MsgEditValidator) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 
-	if msg.MinSelfDelegation != nil && !msg.MinSelfDelegation.IsPositive() {
-		return sdkerrors.Wrap(
-			sdkerrors.ErrInvalidRequest,
-			"minimum self delegation must be a positive integer",
-		)
-	}
+	//if msg.MinSelfDelegation != nil && !msg.MinSelfDelegation.IsPositive() {
+	//	return sdkerrors.Wrap(
+	//		sdkerrors.ErrInvalidRequest,
+	//		"minimum self delegation must be a positive integer",
+	//	)
+	//}
 
 	if msg.CommissionRate != nil {
 		if msg.CommissionRate.GT(sdk.OneDec()) || msg.CommissionRate.IsNegative() {
