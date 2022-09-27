@@ -89,8 +89,6 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *types.MsgCreateVa
 		return nil, err
 	}
 
-	validator.MinSelfDelegation = msg.MinSelfDelegation
-
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByConsAddr(ctx, validator)
 	k.SetNewValidatorByPowerIndex(ctx, validator)
@@ -101,9 +99,11 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *types.MsgCreateVa
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
 	// NOTE source will always be from a wallet which are unbonded
-	_, err = k.Keeper.Delegate(ctx, delegatorAddress, msg.Value.Amount, types.Unbonded, validator, true)
-	if err != nil {
-		return nil, err
+	if msg.Value.Amount.Int64() > int64(0) {
+		_, err = k.Keeper.Delegate(ctx, delegatorAddress, msg.Value.Amount, types.Unbonded, validator, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -155,25 +155,12 @@ func (k msgServer) EditValidator(goCtx context.Context, msg *types.MsgEditValida
 		validator.Commission = commission
 	}
 
-	if msg.MinSelfDelegation != nil {
-		if !msg.MinSelfDelegation.GT(validator.MinSelfDelegation) {
-			return nil, types.ErrMinSelfDelegationDecreased
-		}
-
-		if msg.MinSelfDelegation.GT(validator.Tokens) {
-			return nil, types.ErrSelfDelegationBelowMinimum
-		}
-
-		validator.MinSelfDelegation = (*msg.MinSelfDelegation)
-	}
-
 	k.SetValidator(ctx, validator)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeEditValidator,
 			sdk.NewAttribute(types.AttributeKeyCommissionRate, validator.Commission.String()),
-			sdk.NewAttribute(types.AttributeKeyMinSelfDelegation, validator.MinSelfDelegation.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
