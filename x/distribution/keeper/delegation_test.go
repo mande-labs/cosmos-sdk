@@ -321,7 +321,7 @@ func TestWithdrawDelegationRewardsBasic(t *testing.T) {
 	require.Equal(t, uint64(2), app.DistrKeeper.GetValidatorHistoricalReferenceCount(ctx))
 
 	// assert correct balance
-	exp := balanceTokens.Sub(valTokens).Add(initial.QuoRaw(2))
+	exp := balanceTokens.Sub(valTokens)
 	require.Equal(t,
 		sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, exp)},
 		app.BankKeeper.GetAllBalances(ctx, sdk.AccAddress(valAddrs[0])),
@@ -332,7 +332,7 @@ func TestWithdrawDelegationRewardsBasic(t *testing.T) {
 	require.Nil(t, err)
 
 	// assert correct balance
-	exp = balanceTokens.Sub(valTokens).Add(initial)
+	exp = balanceTokens.Sub(valTokens).Add(initial.QuoRaw(2))
 	require.Equal(t,
 		sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, exp)},
 		app.BankKeeper.GetAllBalances(ctx, sdk.AccAddress(valAddrs[0])),
