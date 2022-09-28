@@ -99,7 +99,7 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *types.MsgCreateVa
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
 	// NOTE source will always be from a wallet which are unbonded
-	if msg.Value.Amount.Int64() > int64(0) {
+	if msg.Value.Amount.GT(sdk.NewInt(0)) {
 		_, err = k.Keeper.Delegate(ctx, delegatorAddress, msg.Value.Amount, types.Unbonded, validator, true)
 		if err != nil {
 			return nil, err
