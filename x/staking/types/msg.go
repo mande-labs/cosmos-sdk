@@ -30,7 +30,7 @@ var (
 // Delegator address and validator address are the same.
 func NewMsgCreateValidator(
 	valAddr sdk.ValAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	selfDelegation sdk.Coin, description Description, commission CommissionRates,
+	selfDelegation sdk.Coin, description Description,
 ) (*MsgCreateValidator, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -39,6 +39,15 @@ func NewMsgCreateValidator(
 			return nil, err
 		}
 	}
+
+	rate, _ := sdk.NewDecFromStr("1")
+	maxRate, _ := sdk.NewDecFromStr("1")
+	maxChangeRate, _ := sdk.NewDecFromStr("0")
+
+	commission := CommissionRates{
+		rate, maxRate, maxChangeRate,
+	}
+
 	return &MsgCreateValidator{
 		Description:       description,
 		DelegatorAddress:  sdk.AccAddress(valAddr).String(),
@@ -110,20 +119,8 @@ func (msg MsgCreateValidator) ValidateBasic() error {
 		return ErrEmptyValidatorPubKey
 	}
 
-	if !msg.Value.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid delegation amount")
-	}
-
 	if msg.Description == (Description{}) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
-	}
-
-	if msg.Commission == (CommissionRates{}) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty commission")
-	}
-
-	if err := msg.Commission.Validate(); err != nil {
-		return err
 	}
 
 	return nil
@@ -137,10 +134,9 @@ func (msg MsgCreateValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 
 // NewMsgEditValidator creates a new MsgEditValidator instance
 //nolint:interfacer
-func NewMsgEditValidator(valAddr sdk.ValAddress, description Description, newRate *sdk.Dec) *MsgEditValidator {
+func NewMsgEditValidator(valAddr sdk.ValAddress, description Description) *MsgEditValidator {
 	return &MsgEditValidator{
 		Description:       description,
-		CommissionRate:    newRate,
 		ValidatorAddress:  valAddr.String(),
 	}
 }
@@ -174,12 +170,6 @@ func (msg MsgEditValidator) ValidateBasic() error {
 
 	if msg.Description == (Description{}) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
-	}
-
-	if msg.CommissionRate != nil {
-		if msg.CommissionRate.GT(sdk.OneDec()) || msg.CommissionRate.IsNegative() {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "commission rate must be between 0 and 1 (inclusive)")
-		}
 	}
 
 	return nil

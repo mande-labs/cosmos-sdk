@@ -22,8 +22,6 @@ func TestAllocateTokensToValidatorWithCommission(t *testing.T) {
 	valAddrs := simapp.ConvertAddrsToValAddrs(addrs)
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
 
-	// create validator with 50% commission
-	tstaking.Commission = stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	tstaking.CreateValidator(sdk.ValAddress(addrs[0]), valConsPk1, sdk.NewInt(100), true)
 	val := app.StakingKeeper.Validator(ctx, valAddrs[0])
 
@@ -35,12 +33,12 @@ func TestAllocateTokensToValidatorWithCommission(t *testing.T) {
 
 	// check commission
 	expected := sdk.DecCoins{
-		{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(5)},
+		{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(10)},
 	}
 	require.Equal(t, expected, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val.GetOperator()).Commission)
 
 	// check current rewards
-	require.Equal(t, expected, app.DistrKeeper.GetValidatorCurrentRewards(ctx, val.GetOperator()).Rewards)
+	require.True(t, app.DistrKeeper.GetValidatorCurrentRewards(ctx, val.GetOperator()).Rewards.IsZero())
 }
 
 func TestAllocateTokensToManyValidators(t *testing.T) {
@@ -51,12 +49,8 @@ func TestAllocateTokensToManyValidators(t *testing.T) {
 	valAddrs := simapp.ConvertAddrsToValAddrs(addrs)
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
 
-	// create validator with 50% commission
-	tstaking.Commission = stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	tstaking.CreateValidator(valAddrs[0], valConsPk1, sdk.NewInt(100), true)
 
-	// create second validator with 0% commission
-	tstaking.Commission = stakingtypes.NewCommissionRates(sdk.NewDec(0), sdk.NewDec(0), sdk.NewDec(0))
 	tstaking.CreateValidator(valAddrs[1], valConsPk2, sdk.NewInt(100), true)
 
 	abciValA := abci.Validator{
@@ -104,14 +98,12 @@ func TestAllocateTokensToManyValidators(t *testing.T) {
 	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDecWithPrec(515, 1)}}, app.DistrKeeper.GetValidatorOutstandingRewards(ctx, valAddrs[1]).Rewards)
 	// 2 community pool coins
 	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(2)}}, app.DistrKeeper.GetFeePool(ctx).CommunityPool)
-	// 50% commission for first proposer, (0.5 * 93%) * 100 / 2 = 23.25
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDecWithPrec(2325, 2)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
-	// zero commission for second proposer
-	require.True(t, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[1]).Commission.IsZero())
-	// just staking.proportional for first proposer less commission = (0.5 * 93%) * 100 / 2 = 23.25
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDecWithPrec(2325, 2)}}, app.DistrKeeper.GetValidatorCurrentRewards(ctx, valAddrs[0]).Rewards)
-	// proposer reward + staking.proportional for second proposer = (5 % + 0.5 * (93%)) * 100 = 51.5
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDecWithPrec(515, 1)}}, app.DistrKeeper.GetValidatorCurrentRewards(ctx, valAddrs[1]).Rewards)
+	// 100% commission for first proposer, (1 * 93%) * 100 / 2 = 46.5
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDecWithPrec(4650, 2)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
+	// 100% commission for second proposer
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDecWithPrec(5150, 2)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[1]).Commission)
+	require.True(t, app.DistrKeeper.GetValidatorCurrentRewards(ctx, valAddrs[0]).Rewards.IsZero())
+	require.True(t, app.DistrKeeper.GetValidatorCurrentRewards(ctx, valAddrs[1]).Rewards.IsZero())
 }
 
 func TestAllocateTokensTruncation(t *testing.T) {

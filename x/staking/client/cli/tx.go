@@ -23,9 +23,6 @@ import (
 var (
 	DefaultTokens                  = sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction)
 	defaultAmount                  = DefaultTokens.String() + sdk.DefaultBondDenom
-	defaultCommissionRate          = "0.1"
-	defaultCommissionMaxRate       = "0.2"
-	defaultCommissionMaxChangeRate = "0.01"
 )
 
 type Int struct {
@@ -76,7 +73,6 @@ func NewCreateValidatorCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(FlagSetPublicKey())
 	cmd.Flags().AddFlagSet(FlagSetAmount())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
-	cmd.Flags().AddFlagSet(FlagSetCommissionCreate())
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
 	cmd.Flags().String(FlagNodeID, "", "The node's ID")
@@ -107,26 +103,13 @@ func NewEditValidatorCmd() *cobra.Command {
 			details, _ := cmd.Flags().GetString(FlagDetails)
 			description := types.NewDescription(moniker, identity, website, security, details)
 
-			var newRate *sdk.Dec
-
-			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
-			if commissionRate != "" {
-				rate, err := sdk.NewDecFromStr(commissionRate)
-				if err != nil {
-					return fmt.Errorf("invalid new commission rate: %v", err)
-				}
-
-				newRate = &rate
-			}
-
-			msg := types.NewMsgEditValidator(sdk.ValAddress(valAddr), description, newRate)
+			msg := types.NewMsgEditValidator(sdk.ValAddress(valAddr), description)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().AddFlagSet(flagSetDescriptionEdit())
-	cmd.Flags().AddFlagSet(flagSetCommissionUpdate())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -249,18 +232,8 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		details,
 	)
 
-	// get the initial validator commission parameters
-	rateStr, _ := fs.GetString(FlagCommissionRate)
-	maxRateStr, _ := fs.GetString(FlagCommissionMaxRate)
-	maxChangeRateStr, _ := fs.GetString(FlagCommissionMaxChangeRate)
-
-	commissionRates, err := buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr)
-	if err != nil {
-		return txf, nil, err
-	}
-
 	msg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(valAddr), pk, amount, description, commissionRates,
+		sdk.ValAddress(valAddr), pk, amount, description,
 	)
 	if err != nil {
 		return txf, nil, err
@@ -293,17 +266,12 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 	fsCreateValidator.String(FlagSecurityContact, "", "The validator's (optional) security contact email")
 	fsCreateValidator.String(FlagDetails, "", "The validator's (optional) details")
 	fsCreateValidator.String(FlagIdentity, "", "The (optional) identity signature (ex. UPort or Keybase)")
-	fsCreateValidator.AddFlagSet(FlagSetCommissionCreate())
 	fsCreateValidator.AddFlagSet(FlagSetAmount())
 	fsCreateValidator.AddFlagSet(FlagSetPublicKey())
 
 	defaultsDesc = fmt.Sprintf(`
 	delegation amount:           %s
-	commission rate:             %s
-	commission max rate:         %s
-	commission max change rate:  %s
-`, defaultAmount, defaultCommissionRate,
-		defaultCommissionMaxRate, defaultCommissionMaxChangeRate)
+`, defaultAmount)
 
 	return fsCreateValidator, defaultsDesc
 }
@@ -314,10 +282,6 @@ type TxCreateValidatorConfig struct {
 	Moniker string
 
 	Amount string
-
-	CommissionRate          string
-	CommissionMaxRate       string
-	CommissionMaxChangeRate string
 
 	PubKey cryptotypes.PubKey
 
@@ -370,21 +334,6 @@ func PrepareConfigForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, c
 		return c, err
 	}
 
-	c.CommissionRate, err = flagSet.GetString(FlagCommissionRate)
-	if err != nil {
-		return c, err
-	}
-
-	c.CommissionMaxRate, err = flagSet.GetString(FlagCommissionMaxRate)
-	if err != nil {
-		return c, err
-	}
-
-	c.CommissionMaxChangeRate, err = flagSet.GetString(FlagCommissionMaxChangeRate)
-	if err != nil {
-		return c, err
-	}
-
 	c.NodeID = nodeID
 	c.PubKey = valPubKey
 	c.Website = website
@@ -396,18 +345,6 @@ func PrepareConfigForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, c
 
 	if c.Amount == "" {
 		c.Amount = defaultAmount
-	}
-
-	if c.CommissionRate == "" {
-		c.CommissionRate = defaultCommissionRate
-	}
-
-	if c.CommissionMaxRate == "" {
-		c.CommissionMaxRate = defaultCommissionMaxRate
-	}
-
-	if c.CommissionMaxChangeRate == "" {
-		c.CommissionMaxChangeRate = defaultCommissionMaxChangeRate
 	}
 
 	return c, nil
@@ -431,18 +368,8 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		config.Details,
 	)
 
-	// get the initial validator commission parameters
-	rateStr := config.CommissionRate
-	maxRateStr := config.CommissionMaxRate
-	maxChangeRateStr := config.CommissionMaxChangeRate
-	commissionRates, err := buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr)
-
-	if err != nil {
-		return txBldr, nil, err
-	}
-
 	msg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(valAddr), config.PubKey, amount, description, commissionRates,
+		sdk.ValAddress(valAddr), config.PubKey, amount, description,
 	)
 	if err != nil {
 		return txBldr, msg, err

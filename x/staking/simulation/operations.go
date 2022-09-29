@@ -127,14 +127,7 @@ func SimulateMsgCreateValidator(ak types.AccountKeeper, bk types.BankKeeper, k k
 			simtypes.RandStringOfLength(r, 10),
 		)
 
-		maxCommission := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 100)), 2)
-		commission := types.NewCommissionRates(
-			simtypes.RandomDecAmount(r, maxCommission),
-			maxCommission,
-			simtypes.RandomDecAmount(r, maxCommission),
-		)
-
-		msg, err := types.NewMsgCreateValidator(address, simAccount.ConsKey.PubKey(), selfDelegation, description, commission)
+		msg, err := types.NewMsgCreateValidator(address, simAccount.ConsKey.PubKey(), selfDelegation, description)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "unable to create CreateValidator message"), nil, err
 		}
@@ -171,13 +164,6 @@ func SimulateMsgEditValidator(ak types.AccountKeeper, bk types.BankKeeper, k kee
 
 		address := val.GetOperator()
 
-		newCommissionRate := simtypes.RandomDecAmount(r, val.Commission.MaxRate)
-
-		if err := val.Commission.ValidateNewRate(newCommissionRate, ctx.BlockHeader().Time); err != nil {
-			// skip as the commission is invalid
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEditValidator, "invalid commission rate"), nil, nil
-		}
-
 		simAccount, found := simtypes.FindAccount(accs, sdk.AccAddress(val.GetOperator()))
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEditValidator, "unable to find account"), nil, fmt.Errorf("validator %s not found", val.GetOperator())
@@ -194,7 +180,7 @@ func SimulateMsgEditValidator(ak types.AccountKeeper, bk types.BankKeeper, k kee
 			simtypes.RandStringOfLength(r, 10),
 		)
 
-		msg := types.NewMsgEditValidator(address, description, &newCommissionRate)
+		msg := types.NewMsgEditValidator(address, description)
 
 		txCtx := simulation.OperationInput{
 			R:               r,

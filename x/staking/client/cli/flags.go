@@ -21,10 +21,6 @@ const (
 	FlagSecurityContact = "security-contact"
 	FlagDetails         = "details"
 
-	FlagCommissionRate          = "commission-rate"
-	FlagCommissionMaxRate       = "commission-max-rate"
-	FlagCommissionMaxChangeRate = "commission-max-change-rate"
-
 	FlagGenesisFormat = "genesis-format"
 	FlagNodeID        = "node-id"
 	FlagIP            = "ip"
@@ -40,17 +36,6 @@ func init() {
 	fsShares.String(FlagSharesAmount, "", "Amount of source-shares to either unbond or redelegate as a positive integer or decimal")
 	fsShares.String(FlagSharesFraction, "", "Fraction of source-shares to either unbond or redelegate as a positive integer or decimal >0 and <=1")
 	fsValidator.String(FlagAddressValidator, "", "The Bech32 address of the validator")
-}
-
-// FlagSetCommissionCreate Returns the FlagSet used for commission create.
-func FlagSetCommissionCreate() *flag.FlagSet {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-
-	fs.String(FlagCommissionRate, "", "The initial commission rate percentage")
-	fs.String(FlagCommissionMaxRate, "", "The maximum commission rate percentage")
-	fs.String(FlagCommissionMaxChangeRate, "", "The maximum commission change rate percentage (per day)")
-
-	return fs
 }
 
 // FlagSetAmount Returns the FlagSet for amount related operations.
@@ -75,14 +60,6 @@ func flagSetDescriptionEdit() *flag.FlagSet {
 	fs.String(FlagWebsite, types.DoNotModifyDesc, "The validator's (optional) website")
 	fs.String(FlagSecurityContact, types.DoNotModifyDesc, "The validator's (optional) security contact email")
 	fs.String(FlagDetails, types.DoNotModifyDesc, "The validator's (optional) details")
-
-	return fs
-}
-
-func flagSetCommissionUpdate() *flag.FlagSet {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-
-	fs.String(FlagCommissionRate, "", "The new commission rate percentage")
 
 	return fs
 }

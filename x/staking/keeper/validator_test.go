@@ -3,12 +3,10 @@ package keeper_test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -1035,63 +1033,6 @@ func TestApplyAndReturnValidatorSetUpdatesBondTransition(t *testing.T) {
 	require.Equal(t, validators[1].ABCIValidatorUpdate(app.StakingKeeper.PowerReduction(ctx)), updates[0])
 
 	applyValidatorSetUpdates(t, ctx, app.StakingKeeper, 0)
-}
-
-func TestUpdateValidatorCommission(t *testing.T) {
-	app, ctx, _, addrVals := bootstrapValidatorTest(t, 1000, 20)
-	ctx = ctx.WithBlockHeader(tmproto.Header{Time: time.Now().UTC()})
-
-	commission1 := types.NewCommissionWithTime(
-		sdk.NewDecWithPrec(1, 1), sdk.NewDecWithPrec(3, 1),
-		sdk.NewDecWithPrec(1, 1), time.Now().UTC().Add(time.Duration(-1)*time.Hour),
-	)
-	commission2 := types.NewCommission(sdk.NewDecWithPrec(1, 1), sdk.NewDecWithPrec(3, 1), sdk.NewDecWithPrec(1, 1))
-
-	val1 := teststaking.NewValidator(t, addrVals[0], PKs[0])
-	val2 := teststaking.NewValidator(t, addrVals[1], PKs[1])
-
-	val1, _ = val1.SetInitialCommission(commission1)
-	val2, _ = val2.SetInitialCommission(commission2)
-
-	app.StakingKeeper.SetValidator(ctx, val1)
-	app.StakingKeeper.SetValidator(ctx, val2)
-
-	testCases := []struct {
-		validator   types.Validator
-		newRate     sdk.Dec
-		expectedErr bool
-	}{
-		{val1, sdk.ZeroDec(), true},
-		{val2, sdk.NewDecWithPrec(-1, 1), true},
-		{val2, sdk.NewDecWithPrec(4, 1), true},
-		{val2, sdk.NewDecWithPrec(3, 1), true},
-		{val2, sdk.NewDecWithPrec(2, 1), false},
-	}
-
-	for i, tc := range testCases {
-		commission, err := app.StakingKeeper.UpdateValidatorCommission(ctx, tc.validator, tc.newRate)
-
-		if tc.expectedErr {
-			require.Error(t, err, "expected error for test case #%d with rate: %s", i, tc.newRate)
-		} else {
-			tc.validator.Commission = commission
-			app.StakingKeeper.SetValidator(ctx, tc.validator)
-			val, found := app.StakingKeeper.GetValidator(ctx, tc.validator.GetOperator())
-
-			require.True(t, found,
-				"expected to find validator for test case #%d with rate: %s", i, tc.newRate,
-			)
-			require.NoError(t, err,
-				"unexpected error for test case #%d with rate: %s", i, tc.newRate,
-			)
-			require.Equal(t, tc.newRate, val.Commission.Rate,
-				"expected new validator commission rate for test case #%d with rate: %s", i, tc.newRate,
-			)
-			require.Equal(t, ctx.BlockHeader().Time, val.Commission.UpdateTime,
-				"expected new validator commission update time for test case #%d with rate: %s", i, tc.newRate,
-			)
-		}
-	}
 }
 
 func applyValidatorSetUpdates(t *testing.T, ctx sdk.Context, k keeper.Keeper, expectedUpdatesLen int) []abci.ValidatorUpdate {

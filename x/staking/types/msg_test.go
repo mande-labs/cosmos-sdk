@@ -36,8 +36,7 @@ func TestMsgDecode(t *testing.T) {
 
 	// now let's try to serialize the whole message
 
-	commission1 := types.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
-	msg, err := types.NewMsgCreateValidator(valAddr1, pk1, coinPos, types.Description{}, commission1)
+	msg, err := types.NewMsgCreateValidator(valAddr1, pk1, coinPos, types.Description{})
 	require.NoError(t, err)
 	msgSerialized, err := cdc.MarshalInterface(msg)
 	require.NoError(t, err)
@@ -53,29 +52,26 @@ func TestMsgDecode(t *testing.T) {
 
 // test ValidateBasic for MsgCreateValidator
 func TestMsgCreateValidator(t *testing.T) {
-	commission1 := types.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
-	commission2 := types.NewCommissionRates(sdk.NewDec(5), sdk.NewDec(5), sdk.NewDec(5))
 
 	tests := []struct {
 		name, moniker, identity, website, securityContact, details string
-		CommissionRates                                            types.CommissionRates
 		validatorAddr                                              sdk.ValAddress
 		pubkey                                                     cryptotypes.PubKey
 		bond                                                       sdk.Coin
 		expectPass                                                 bool
 	}{
-		{"basic good", "a", "b", "c", "d", "e", commission1, valAddr1, pk1, coinPos, true},
-		{"partial description", "", "", "c", "", "", commission1, valAddr1, pk1, coinPos, true},
-		{"empty description", "", "", "", "", "", commission2, valAddr1, pk1, coinPos, false},
-		{"empty address", "a", "b", "c", "d", "e", commission2, emptyAddr, pk1, coinPos, false},
-		{"empty pubkey", "a", "b", "c", "d", "e", commission1, valAddr1, emptyPubkey, coinPos, false},
-		{"empty bond", "a", "b", "c", "d", "e", commission2, valAddr1, pk1, coinZero, false},
-		{"nil bond", "a", "b", "c", "d", "e", commission2, valAddr1, pk1, sdk.Coin{}, false},
+		{"basic good", "a", "b", "c", "d", "e", valAddr1, pk1, coinPos, true},
+		{"partial description", "", "", "c", "", "", valAddr1, pk1, coinPos, true},
+		{"empty description", "", "", "", "", "", valAddr1, pk1, coinPos, false},
+		{"empty address", "a", "b", "c", "d", "e", emptyAddr, pk1, coinPos, false},
+		{"empty pubkey", "a", "b", "c", "d", "e", valAddr1, emptyPubkey, coinPos, false},
+		{"empty bond", "a", "b", "c", "d", "e", valAddr1, pk1, coinZero, true},
+		{"nil bond", "a", "b", "c", "d", "e", valAddr1, pk1, sdk.Coin{}, true},
 	}
 
 	for _, tc := range tests {
 		description := types.NewDescription(tc.moniker, tc.identity, tc.website, tc.securityContact, tc.details)
-		msg, err := types.NewMsgCreateValidator(tc.validatorAddr, tc.pubkey, tc.bond, description, tc.CommissionRates)
+		msg, err := types.NewMsgCreateValidator(tc.validatorAddr, tc.pubkey, tc.bond, description)
 		require.NoError(t, err)
 		if tc.expectPass {
 			require.Nil(t, msg.ValidateBasic(), "test: %v", tc.name)
@@ -101,9 +97,8 @@ func TestMsgEditValidator(t *testing.T) {
 
 	for _, tc := range tests {
 		description := types.NewDescription(tc.moniker, tc.identity, tc.website, tc.securityContact, tc.details)
-		newRate := sdk.ZeroDec()
 
-		msg := types.NewMsgEditValidator(tc.validatorAddr, description, &newRate)
+		msg := types.NewMsgEditValidator(tc.validatorAddr, description)
 		if tc.expectPass {
 			require.Nil(t, msg.ValidateBasic(), "test: %v", tc.name)
 		} else {
