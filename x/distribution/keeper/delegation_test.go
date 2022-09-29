@@ -59,12 +59,8 @@ func TestCalculateRewardsBasic(t *testing.T) {
 
 	// calculate delegation rewards
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
-
-	// rewards should be half the tokens
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 2)}}, rewards)
-
-	// commission should be the other half
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 2)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
+	require.True(t, rewards.IsZero())
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 }
 
 func TestCalculateRewardsAfterSlash(t *testing.T) {
@@ -123,10 +119,10 @@ func TestCalculateRewardsAfterSlash(t *testing.T) {
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
 
 	// rewards should be half the tokens
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.QuoRaw(2).ToDec()}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// commission should be the other half
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.QuoRaw(2).ToDec()}},
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.ToDec()}},
 		app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 }
 
@@ -198,10 +194,10 @@ func TestCalculateRewardsAfterManySlashes(t *testing.T) {
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
 
 	// rewards should be half the tokens
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.ToDec()}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// commission should be the other half
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.ToDec()}},
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.ToDec().Mul(sdk.NewDec(2))}},
 		app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 }
 
@@ -256,16 +252,16 @@ func TestCalculateRewardsMultiDelegator(t *testing.T) {
 	rewards := app.DistrKeeper.CalculateDelegationRewards(ctx, val, del1, endingPeriod)
 
 	// rewards for del1 should be 3/4 initial
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial * 3 / 4)}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// calculate delegation rewards for del2
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del2, endingPeriod)
 
 	// rewards for del2 should be 1/4 initial
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial * 1 / 4)}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// commission should be equal to initial (50% twice)
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial * 2)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 }
 
 func TestWithdrawDelegationRewardsBasic(t *testing.T) {
@@ -332,7 +328,7 @@ func TestWithdrawDelegationRewardsBasic(t *testing.T) {
 	require.Nil(t, err)
 
 	// assert correct balance
-	exp = balanceTokens.Sub(valTokens).Add(initial.QuoRaw(2))
+	exp = balanceTokens.Sub(valTokens).Add(initial)
 	require.Equal(t,
 		sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, exp)},
 		app.BankKeeper.GetAllBalances(ctx, sdk.AccAddress(valAddrs[0])),
@@ -401,10 +397,10 @@ func TestCalculateRewardsAfterManySlashesInSameBlock(t *testing.T) {
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
 
 	// rewards should be half the tokens
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// commission should be the other half
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.Mul(sdk.NewDec(2))}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 }
 
 func TestCalculateRewardsMultiDelegatorMultiSlash(t *testing.T) {
@@ -469,16 +465,16 @@ func TestCalculateRewardsMultiDelegatorMultiSlash(t *testing.T) {
 	rewards := app.DistrKeeper.CalculateDelegationRewards(ctx, val, del1, endingPeriod)
 
 	// rewards for del1 should be 2/3 initial (half initial first period, 1/6 initial second period)
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.QuoInt64(2).Add(initial.QuoInt64(6))}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// calculate delegation rewards for del2
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del2, endingPeriod)
 
 	// rewards for del2 should be initial / 3
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.QuoInt64(3)}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// commission should be equal to initial (twice 50% commission, unaffected by slashing)
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: initial.Mul(sdk.NewDec(2))}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 }
 
 func TestCalculateRewardsMultiDelegatorMultWithdraw(t *testing.T) {
@@ -592,10 +588,9 @@ func TestCalculateRewardsMultiDelegatorMultWithdraw(t *testing.T) {
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del2, endingPeriod)
 
 	// rewards for del2 should be 1/4 initial
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 4)}}, rewards)
+	require.True(t, rewards.IsZero())
 
-	// commission should be half initial
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 2)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
+	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial)}}, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission)
 
 	// next block
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
@@ -613,14 +608,12 @@ func TestCalculateRewardsMultiDelegatorMultWithdraw(t *testing.T) {
 	// calculate delegation rewards for del1
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del1, endingPeriod)
 
-	// rewards for del1 should be 1/4 initial
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 4)}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// calculate delegation rewards for del2
 	rewards = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del2, endingPeriod)
 
-	// rewards for del2 should be 1/2 initial
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 2)}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// commission should be zero
 	require.True(t, app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, valAddrs[0]).Commission.IsZero())

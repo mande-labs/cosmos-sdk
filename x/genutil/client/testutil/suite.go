@@ -55,16 +55,6 @@ func (s *IntegrationTestSuite) TestGenTxCmd() {
 		expError bool
 	}{
 		{
-			name: "invalid commission rate returns error",
-			args: []string{
-				fmt.Sprintf("--%s=%s", flags.FlagChainID, s.network.Config.ChainID),
-				fmt.Sprintf("--%s=1", stakingcli.FlagCommissionRate),
-				val.Moniker,
-				amount.String(),
-			},
-			expError: true,
-		},
-		{
 			name: "valid gentx",
 			args: []string{
 				fmt.Sprintf("--%s=%s", flags.FlagChainID, s.network.Config.ChainID),

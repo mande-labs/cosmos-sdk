@@ -61,10 +61,9 @@ func TestSlashingMsgs(t *testing.T) {
 	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin})
 
 	description := stakingtypes.NewDescription("foo_moniker", "", "", "", "")
-	commission := stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
 
 	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(
-		sdk.ValAddress(addr1), valKey.PubKey(), bondCoin, description, commission,
+		sdk.ValAddress(addr1), valKey.PubKey(), bondCoin, description,
 	)
 	require.NoError(t, err)
 

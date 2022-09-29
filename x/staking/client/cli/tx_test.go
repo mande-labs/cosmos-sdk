@@ -17,7 +17,7 @@ func TestPrepareConfigForTxCreateValidator(t *testing.T) {
 	privKey := ed25519.GenPrivKey()
 	valPubKey := privKey.PubKey()
 	moniker := "DefaultMoniker"
-	mkTxValCfg := func(amount, commission, commissionMax, commissionMaxChange string) TxCreateValidatorConfig {
+	mkTxValCfg := func(amount string) TxCreateValidatorConfig {
 		return TxCreateValidatorConfig{
 			IP:                      ip,
 			ChainID:                 chainID,
@@ -25,9 +25,6 @@ func TestPrepareConfigForTxCreateValidator(t *testing.T) {
 			PubKey:                  valPubKey,
 			Moniker:                 moniker,
 			Amount:                  amount,
-			CommissionRate:          commission,
-			CommissionMaxRate:       commissionMax,
-			CommissionMaxChangeRate: commissionMaxChange,
 		}
 	}
 
@@ -41,31 +38,13 @@ func TestPrepareConfigForTxCreateValidator(t *testing.T) {
 			fsModify: func(fs *pflag.FlagSet) {
 				return
 			},
-			expectedCfg: mkTxValCfg(defaultAmount, "0.1", "0.2", "0.01"),
+			expectedCfg: mkTxValCfg(defaultAmount),
 		}, {
 			name: "Custom amount",
 			fsModify: func(fs *pflag.FlagSet) {
 				fs.Set(FlagAmount, "2000stake")
 			},
-			expectedCfg: mkTxValCfg("2000stake", "0.1", "0.2", "0.01"),
-		}, {
-			name: "Custom commission rate",
-			fsModify: func(fs *pflag.FlagSet) {
-				fs.Set(FlagCommissionRate, "0.54")
-			},
-			expectedCfg: mkTxValCfg(defaultAmount, "0.54", "0.2", "0.01"),
-		}, {
-			name: "Custom commission max rate",
-			fsModify: func(fs *pflag.FlagSet) {
-				fs.Set(FlagCommissionMaxRate, "0.89")
-			},
-			expectedCfg: mkTxValCfg(defaultAmount, "0.1", "0.89", "0.01"),
-		}, {
-			name: "Custom commission max change rate",
-			fsModify: func(fs *pflag.FlagSet) {
-				fs.Set(FlagCommissionMaxChangeRate, "0.55")
-			},
-			expectedCfg: mkTxValCfg(defaultAmount, "0.1", "0.2", "0.55"),
+			expectedCfg: mkTxValCfg("2000stake"),
 		},
 	}
 

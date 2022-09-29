@@ -184,12 +184,11 @@ func TestQueries(t *testing.T) {
 	tokens := sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial)}}
 	app.DistrKeeper.AllocateTokensToValidator(ctx, val, tokens)
 	rewards = getQueriedDelegationRewards(t, ctx, cdc, querier, sdk.AccAddress(valOpAddr1), valOpAddr1)
-	require.Equal(t, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 2)}}, rewards)
+	require.True(t, rewards.IsZero())
 
 	// test delegator's total rewards query
 	delRewards = getQueriedDelegatorTotalRewards(t, ctx, cdc, querier, sdk.AccAddress(valOpAddr1))
-	expectedDelReward := types.NewDelegationDelegatorReward(valOpAddr1,
-		sdk.DecCoins{sdk.NewInt64DecCoin("stake", 5)})
+	expectedDelReward := types.NewDelegationDelegatorReward(valOpAddr1, nil)
 	wantDelRewards := types.NewQueryDelegatorTotalRewardsResponse(
 		[]types.DelegationDelegatorReward{expectedDelReward}, expectedDelReward.Reward)
 	require.Equal(t, wantDelRewards, delRewards)

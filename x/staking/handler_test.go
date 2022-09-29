@@ -851,16 +851,15 @@ func TestInvalidCoinDenom(t *testing.T) {
 	validCoin := sdk.NewCoin(sdk.DefaultBondDenom, valTokens)
 	oneCoin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())
 
-	commission := types.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.ZeroDec())
-	msgCreate, err := types.NewMsgCreateValidator(valA, PKs[0], invalidCoin, types.Description{}, commission)
+	msgCreate, err := types.NewMsgCreateValidator(valA, PKs[0], invalidCoin, types.Description{})
 	require.NoError(t, err)
 	tstaking.Handle(msgCreate, false)
 
-	msgCreate, err = types.NewMsgCreateValidator(valA, PKs[0], validCoin, types.Description{}, commission)
+	msgCreate, err = types.NewMsgCreateValidator(valA, PKs[0], validCoin, types.Description{})
 	require.NoError(t, err)
 	tstaking.Handle(msgCreate, true)
 
-	msgCreate, err = types.NewMsgCreateValidator(valB, PKs[1], validCoin, types.Description{}, commission)
+	msgCreate, err = types.NewMsgCreateValidator(valB, PKs[1], validCoin, types.Description{})
 	require.NoError(t, err)
 	tstaking.Handle(msgCreate, true)
 

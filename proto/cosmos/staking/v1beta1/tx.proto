@@ -34,11 +34,10 @@ message MsgCreateValidator {
   option (gogoproto.goproto_getters) = false;
 
   Description     description         = 1 [(gogoproto.nullable) = false];
-  CommissionRates commission          = 2 [(gogoproto.nullable) = false];
-  string                   delegator_address = 3 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
-  string                   validator_address = 4 [(gogoproto.moretags) = "yaml:\"validator_address\""];
-  google.protobuf.Any      pubkey            = 5 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-  cosmos.base.v1beta1.Coin value             = 6 [(gogoproto.nullable) = false];
+  string                   delegator_address = 2 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  string                   validator_address = 3 [(gogoproto.moretags) = "yaml:\"validator_address\""];
+  google.protobuf.Any      pubkey            = 4 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  cosmos.base.v1beta1.Coin value             = 5 [(gogoproto.nullable) = false];
 }
 
 // MsgCreateValidatorResponse defines the Msg/CreateValidator response type.
@@ -51,15 +50,6 @@ message MsgEditValidator {
 
   Description description       = 1 [(gogoproto.nullable) = false];
   string      validator_address = 2 [(gogoproto.moretags) = "yaml:\"address\""];
-
-  // We pass a reference to the new commission rate and min self delegation as
-  // it's not mandatory to update. If not updated, the deserialized rate will be
-  // zero with no way to distinguish if an update was intended.
-  // REF: #2373
-  string commission_rate = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.moretags)   = "yaml:\"commission_rate\""
-  ];
 }
 
 // MsgEditValidatorResponse defines the Msg/EditValidator response type.

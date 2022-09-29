@@ -415,7 +415,7 @@ func (suite *KeeperTestSuite) TestGRPCDelegationRewards() {
 				}
 
 				expRes = &types.QueryDelegationRewardsResponse{
-					Rewards: sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(initial / 2)}},
+					Rewards: nil,
 				}
 			},
 			true,
@@ -463,8 +463,7 @@ func (suite *KeeperTestSuite) TestGRPCDelegationRewards() {
 					DelegatorAddress: addrs[0].String(),
 				}
 
-				expectedDelReward := types.NewDelegationDelegatorReward(valAddrs[0],
-					sdk.DecCoins{sdk.NewInt64DecCoin("stake", 5)})
+				expectedDelReward := types.NewDelegationDelegatorReward(valAddrs[0], nil)
 
 				expTotalRewardsRes = &types.QueryDelegationTotalRewardsResponse{
 					Rewards: []types.DelegationDelegatorReward{expectedDelReward},
