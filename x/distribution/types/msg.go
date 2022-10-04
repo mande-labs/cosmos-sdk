@@ -43,9 +43,6 @@ func (msg MsgSetWithdrawAddress) GetSignBytes() []byte {
 
 // quick validity check
 func (msg MsgSetWithdrawAddress) ValidateBasic() error {
-	if msg.DelegatorAddress == "" {
-		return ErrEmptyDelegatorAddr
-	}
 	if msg.WithdrawAddress == "" {
 		return ErrEmptyWithdrawAddr
 	}
