@@ -17,7 +17,7 @@ func TestMsgSetWithdrawAddress(t *testing.T) {
 	}{
 		{delAddr1, delAddr2, true},
 		{delAddr1, delAddr1, true},
-		{emptyDelAddr, delAddr1, false},
+		{emptyDelAddr, delAddr1, true},
 		{delAddr1, emptyDelAddr, false},
 		{emptyDelAddr, emptyDelAddr, false},
 	}
